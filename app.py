@@ -46,7 +46,7 @@ c = conn.cursor()
 
 TOKEN = st.secrets["BOT_TOKEN"]
 BOT_USERNAME = "Controlvencimientos_bot"
-
+ADMIN_CHAT_ID = st.secrets["ADMIN_CHAT_ID"]
 # ===============================
 # DB SETUP
 # ===============================
@@ -417,4 +417,5 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
