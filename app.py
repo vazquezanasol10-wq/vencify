@@ -78,6 +78,11 @@ CREATE TABLE IF NOT EXISTS vencimientos (
 
 conn.commit()
 
+try:
+    c.execute("ALTER TABLE vencimientos ADD COLUMN alertas_enviadas TEXT DEFAULT ''")
+    conn.commit()
+except:
+    pass
 import hashlib
 
 def hash_password(password):
@@ -418,6 +423,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
