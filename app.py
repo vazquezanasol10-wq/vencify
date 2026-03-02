@@ -77,6 +77,22 @@ CREATE TABLE IF NOT EXISTS vencimientos (
 
 conn.commit()
 
+import hashlib
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Crear admin automáticamente si no existe
+admin_password = hash_password("admin123")
+
+c.execute("""
+INSERT OR IGNORE INTO usuarios
+(username, password, chat_id, activo, es_admin)
+VALUES (?, ?, ?, 1, 1)
+""", ("admin_master", admin_password, ADMIN_CHAT_ID))
+
+conn.commit()
+
 # ===============================
 # FUNCIONES
 # ===============================
@@ -401,3 +417,4 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
