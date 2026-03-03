@@ -53,7 +53,6 @@ ADMIN_CHAT_ID = st.secrets["ADMIN_CHAT_ID"]
 # DB SETUP
 # ===============================
 
-conn = sqlite3.connect("usuarios.db", check_same_thread=False)
 c = conn.cursor()
 
 conn.commit()
@@ -403,6 +402,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
