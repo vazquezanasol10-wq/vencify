@@ -61,7 +61,7 @@ async def webhook():
     await telegram_app.process_update(update)
     return "OK"
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     PORT = int(os.environ.get("PORT", 10000))
 
     # Cambiar esto después con tu URL real de Render
@@ -70,4 +70,5 @@ if _name_ == "_main_":
     telegram_app.bot.set_webhook(url=f"{RENDER_URL}/{TOKEN}")
 
     app.run(host="0.0.0.0", port=PORT)
+
 
