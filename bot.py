@@ -1,67 +1,61 @@
 import os
-import sqlite3
-import hashlib
-import random
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import telebot
 from supabase import create_client
-import os
 
+# -------------------------
+# Configuración de Supabase
+# -------------------------
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("SUPABASE_URL o SUPABASE_KEY no estan definidas en las variables de entorno")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-TOKEN = os.getenv("BOT_TOKEN")
-PORT = int(os.environ.get("PORT", 10000))
 
-conn = sqlite3.connect("usuarios.db", check_same_thread=False)
-c = conn.cursor()
+# -------------------------
+# Configuración del bot
+# -------------------------
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-def generar_password():
-    return str(random.randint(1000, 9999))
+# -------------------------
+# Función para registrar usuarios
+# -------------------------
+def registrar_usuario(chat_id, username, password):
+    # Buscar si ya existe por chat_id
+    user = supabase.table("usuarios").select("*").eq("chat_id", chat_id).execute()
+    if user.data:
+        return "Ya estás registrado"
+    
+    # Insertar nuevo usuario
+    res = supabase.table("usuarios").insert({
+        "username": username,
+        "password": password,
+        "chat_id": chat_id,
+        "activo": True
+    }).execute()
+    
+    if res.error:
+        return f"Error al registrar: {res.error.message}"
+    return "Registro exitoso"
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+# -------------------------
+# Manejador del comando /start
+# -------------------------
+@bot.message_handler(commands=['start'])
+def start(message):
+    chat_id = str(message.chat.id)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    username = update.effective_user.username
-    chat_id = str(update.effective_chat.id)
+    # Generar username y password para prueba
+    username = f"user{chat_id}"
+    password = "temporal123"
 
-    if username is None:
-        await update.message.reply_text("Necesitás tener username en Telegram.")
-        return
+    respuesta = registrar_usuario(chat_id, username, password)
+    bot.reply_to(message, respuesta)
 
-    password = generar_password()
-    password_hash = hash_password(password)
-
-    try:
-        c.execute("""
-        INSERT INTO usuarios (username, password, chat_id, activo, es_admin)
-        VALUES (?, ?, ?, 0, 0)
-        """, (username, password_hash, chat_id))
-        conn.commit()
-
-        await update.message.reply_text(
-            f"Registro enviado.\nTu contraseña es: {password}\nEsperá aprobación del admin."
-        )
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
-
+# -------------------------
+# Arrancar el bot
+# -------------------------
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-
-    # IMPORTANTE: poner tu URL de Render después del primer deploy
-    RENDER_URL = os.getenv("RENDER_EXTERNAL_URL")
-
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        webhook_url=f"{RENDER_URL}/{TOKEN}",
-        url_path=TOKEN,
-    )
+    print("Bot iniciado...")
+    bot.infinity_polling()
 
 
 
