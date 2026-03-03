@@ -389,7 +389,7 @@ Gracias por tu interés en Vencify ASV.
     vencs = c.fetchall()
 
     for v in vencs:
-        fecha_v = datetime.strptime(v[2], "%Y-%m-%d").date()
+        fecha_v = v[2]
         dias = (fecha_v - date.today()).days
 
         st.write(f"**{v[1]}** - {v[2]} - {dias} días restantes - Stock: {v[3]}")
@@ -410,6 +410,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
