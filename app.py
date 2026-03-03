@@ -357,7 +357,7 @@ Gracias por tu interés en Vencify ASV.
 
     nombre = st.text_input("Nombre del producto")
     fecha = st.date_input("Fecha de vencimiento")
-    unidad = st.number_input("Stock", min_value= TRUE)
+    unidad = st.number_input("Stock", min_value=0)
 
     if st.button("Agregar vencimiento"):
         c.execute("""
@@ -405,6 +405,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
