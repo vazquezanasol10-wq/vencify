@@ -1,6 +1,5 @@
 import streamlit as st
 import hashlib
-import sqlite3
 import psycopg2
 import requests
 from datetime import datetime, date
@@ -404,6 +403,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
