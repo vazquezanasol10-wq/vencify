@@ -3,4 +3,6 @@ requests
 pandas
 python-telegram-bot
 psycopg2-binary
+supabase
 Flask
+
