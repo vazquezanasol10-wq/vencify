@@ -143,7 +143,7 @@ def verificar_alertas(usuario_id, chat_id):
     for v in vencs:
         producto_id = v[0]
         nombre = v[1]
-        fecha_v = datetime.strptime(v[2], "%Y-%m-%d").date()
+        fecha_v = v[2]
         dias = (fecha_v - hoy).days
 
         alertas_enviadas = v[3]
@@ -410,6 +410,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
