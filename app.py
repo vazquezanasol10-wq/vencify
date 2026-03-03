@@ -1,8 +1,11 @@
 import streamlit as st
 import hashlib
 import sqlite3
+import psycopg2
 import requests
 from datetime import datetime, date
+
+DATABASE_URL = st.secrets["DATABASE_URL"]
 
 st.set_page_config(
     page_title="Vencify ASV",
@@ -38,7 +41,7 @@ st.divider()
 # CONEXIÓN SQLITE LOCAL
 # ----------------------------
 
-conn = sqlite3.connect("usuarios.db", check_same_thread=False)
+conn = psycopg2.connect("DATABASE_URL")
 c = conn.cursor()
 # ===============================
 # CONFIGURACIÓN LOCAL
@@ -53,28 +56,6 @@ ADMIN_CHAT_ID = st.secrets["ADMIN_CHAT_ID"]
 
 conn = sqlite3.connect("usuarios.db", check_same_thread=False)
 c = conn.cursor()
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    chat_id TEXT,
-    activo INTEGER DEFAULT 0,
-    es_admin INTEGER DEFAULT 0
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS vencimientos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    usuario_id INTEGER,
-    nombre TEXT,
-    fecha TEXT,
-    unidad INTEGER,
-    alertas_enviadas TEXT DEFAULT ''
-)
-""")
 
 conn.commit()
 
@@ -119,7 +100,7 @@ def verificar_login(username, password):
     c.execute("""
         SELECT id, username, chat_id, es_admin, activo
         FROM usuarios
-        WHERE username=? AND password=?
+        WHERE username=%s AND password=%s
     """, (username, password_hash))
 
     user = c.fetchone()
@@ -148,7 +129,7 @@ def verificar_alertas(usuario_id, chat_id):
     c.execute("""
         SELECT id, nombre, fecha, alertas_enviadas
         FROM vencimientos
-        WHERE usuario_id=?
+        WHERE usuario_id=%s
     """, (usuario_id,))
 
     vencs = c.fetchall()
@@ -205,8 +186,8 @@ def verificar_alertas(usuario_id, chat_id):
 
             c.execute("""
                 UPDATE vencimientos
-                SET alertas_enviadas=?
-                WHERE id=?
+                SET alertas_enviadas=%s
+                WHERE id=%s
             """, (nuevo_valor, producto_id))
 
             conn.commit()
@@ -291,9 +272,9 @@ else:
     # BOTÓN APROBAR
             if st.button("Aprobar", key=f"aprobar_{u[0]}"):
 
-                c.execute("UPDATE usuarios SET activo=1 WHERE id=?", (u[0],))
+                c.execute("UPDATE usuarios SET activo=1 WHERE id=%s", (u[0],))
                 conn.commit()
-                c.execute("SELECT chat_id, username, password FROM usuarios WHERE id=?", (u[0],))
+                c.execute("SELECT chat_id, username, password FROM usuarios WHERE id=%s", (u[0],))
                 usuario_aprobado = c.fetchone()
 
                 if usuario_aprobado:
@@ -321,7 +302,7 @@ http://localhost:8501
     # BOTÓN RECHAZAR
             if st.button("Rechazar", key=f"rechazar_{u[0]}"):
 
-                c.execute("SELECT chat_id, username FROM usuarios WHERE id=?", (u[0],))
+                c.execute("SELECT chat_id, username FROM usuarios WHERE id=%s", (u[0],))
                 usuario_rechazado = c.fetchone()
 
                 if usuario_rechazado:
@@ -342,7 +323,7 @@ Gracias por tu interés en Vencify ASV.
 
                     enviar_mensaje(chat_id, mensaje)
 
-                c.execute("DELETE FROM usuarios WHERE id=?", (u[0],))
+                c.execute("DELETE FROM usuarios WHERE id=%s", (u[0],))
                 conn.commit()
                 st.warning("Usuario rechazado y notificado ❌")
         st.subheader("👀 Ver productos de usuarios")
@@ -356,7 +337,7 @@ Gracias por tu interés en Vencify ASV.
                 c.execute("""
             SELECT nombre, fecha, unidad
             FROM vencimientos
-            WHERE usuario_id=?
+            WHERE usuario_id=%s
         """, (usr[0],))
 
                 productos = c.fetchall()
@@ -396,7 +377,7 @@ Gracias por tu interés en Vencify ASV.
     c.execute("""
         SELECT id, nombre, fecha, unidad
         FROM vencimientos
-        WHERE usuario_id=?
+        WHERE usuario_id=%s
     """, (st.session_state.usuario_id,))
 
     vencs = c.fetchall()
@@ -413,16 +394,17 @@ Gracias por tu interés en Vencify ASV.
             nuevo_stock = v[3] - 1
 
             if nuevo_stock <= 0:
-                c.execute("DELETE FROM vencimientos WHERE id=?", (v[0],))
+                c.execute("DELETE FROM vencimientos WHERE id=%s", (v[0],))
                 conn.commit()
                 st.success(f"{v[1]} eliminado (stock agotado)")
             else:
-                c.execute("UPDATE vencimientos SET unidad=? WHERE id=?", (nuevo_stock, v[0]))
+                c.execute("UPDATE vencimientos SET unidad=%s WHERE id=%s", (nuevo_stock, v[0]))
                 conn.commit()
 
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
