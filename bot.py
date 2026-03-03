@@ -1,12 +1,16 @@
+import os
 import sqlite3
 import hashlib
 import random
+from flask import Flask, request
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = "8594278387:AAGOQfqMtNmQjX1O3UXLDl4kRkO2l5NyoNY"
+# 🔐 Token desde variable de entorno
+TOKEN = os.getenv("BOT_TOKEN")
 
-conn = sqlite3.connect("usuarios.db")
+# Base de datos
+conn = sqlite3.connect("usuarios.db", check_same_thread=False)
 c = conn.cursor()
 
 def generar_password():
@@ -40,6 +44,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         await update.message.reply_text("Ya estás registrado.")
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.run_polling()
+# Crear app Telegram
+telegram_app = ApplicationBuilder().token(TOKEN).build()
+telegram_app.add_handler(CommandHandler("start", start))
+
+# Crear Flask
+app = Flask(_name_)
+
+@app.route("/")
+def home():
+    return "Bot activo 🚀"
+
+@app.route(f"/{TOKEN}", methods=["POST"])
+async def webhook():
+    update = Update.de_json(request.get_json(force=True), telegram_app.bot)
+    await telegram_app.process_update(update)
+    return "OK"
+
+if _name_ == "_main_":
+    PORT = int(os.environ.get("PORT", 10000))
+
+    # Cambiar esto después con tu URL real de Render
+    RENDER_URL = "https://vencify-bot.onrender.com"
+
+    telegram_app.bot.set_webhook(url=f"{RENDER_URL}/{TOKEN}")
+
+    app.run(host="0.0.0.0", port=PORT)
