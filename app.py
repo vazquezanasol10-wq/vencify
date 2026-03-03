@@ -71,9 +71,10 @@ def hash_password(password):
 admin_password = hash_password("admin123")
 
 c.execute("""
-INSERT OR IGNORE INTO usuarios
+INSERT INTO usuarios
 (username, password, chat_id, activo, es_admin)
-VALUES (?, ?, ?, 1, 1)
+VALUES (%s, %s, %s, TRUE, TRUE)
+ON CONFLICT (username) DO NOTHING;
 """, ("admin_master", admin_password, ADMIN_CHAT_ID))
 
 conn.commit()
@@ -359,7 +360,7 @@ Gracias por tu interés en Vencify ASV.
     if st.button("Agregar vencimiento"):
         c.execute("""
             INSERT INTO vencimientos (usuario_id, nombre, fecha, unidad)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
         """, (
             st.session_state.usuario_id,
             nombre,
@@ -402,6 +403,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
