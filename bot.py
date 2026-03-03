@@ -38,8 +38,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"Registro enviado.\nTu contraseña es: {password}\nEsperá aprobación del admin."
         )
-    except:
-        await update.message.reply_text("Ya estás registrado.")
+    except Exception as e:
+        await update.message.reply_text(f"Error: {e}")
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
@@ -54,6 +54,7 @@ if __name__ == "__main__":
         webhook_url=f"{RENDER_URL}/{TOKEN}",
         url_path=TOKEN,
     )
+
 
 
 
