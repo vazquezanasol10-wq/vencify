@@ -41,7 +41,7 @@ st.divider()
 # CONEXIÓN SQLITE LOCAL
 # ----------------------------
 
-conn = psycopg2.connect("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
 c = conn.cursor()
 # ===============================
 # CONFIGURACIÓN LOCAL
@@ -404,6 +404,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
