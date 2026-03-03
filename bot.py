@@ -7,9 +7,11 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from supabase import create_client
 import os
 
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("SUPABASE_URL o SUPABASE_KEY no estan definidas en las variables de entorno")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.environ.get("PORT", 10000))
@@ -60,6 +62,7 @@ if __name__ == "__main__":
         webhook_url=f"{RENDER_URL}/{TOKEN}",
         url_path=TOKEN,
     )
+
 
 
 
