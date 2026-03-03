@@ -70,6 +70,8 @@ def hash_password(password):
 # Crear admin automáticamente si no existe
 admin_password = hash_password("admin123")
 
+conn.rollback()
+
 c.execute("""
 INSERT INTO usuarios
 (username, password, chat_id, activo, es_admin)
@@ -261,7 +263,7 @@ else:
 
         st.subheader("Usuarios pendientes")
 
-        c.execute("SELECT id, username FROM usuarios WHERE activo=0")
+        c.execute("SELECT id, username FROM usuarios WHERE activo= FALSE")
         pendientes = c.fetchall()
 
         for u in pendientes:
@@ -271,7 +273,7 @@ else:
     # BOTÓN APROBAR
             if st.button("Aprobar", key=f"aprobar_{u[0]}"):
 
-                c.execute("UPDATE usuarios SET activo=1 WHERE id=%s", (u[0],))
+                c.execute("UPDATE usuarios SET activo= TRUE WHERE id=%s", (u[0],))
                 conn.commit()
                 c.execute("SELECT chat_id, username, password FROM usuarios WHERE id=%s", (u[0],))
                 usuario_aprobado = c.fetchone()
@@ -327,7 +329,7 @@ Gracias por tu interés en Vencify ASV.
                 st.warning("Usuario rechazado y notificado ❌")
         st.subheader("👀 Ver productos de usuarios")
 
-        c.execute("SELECT id, username FROM usuarios WHERE activo=1 AND es_admin=0")
+        c.execute("SELECT id, username FROM usuarios WHERE activo= TRUE AND es_admin= FALSE")
         usuarios_activos = c.fetchall()
 
         for usr in usuarios_activos:
@@ -355,7 +357,7 @@ Gracias por tu interés en Vencify ASV.
 
     nombre = st.text_input("Nombre del producto")
     fecha = st.date_input("Fecha de vencimiento")
-    unidad = st.number_input("Stock", min_value=1)
+    unidad = st.number_input("Stock", min_value= TRUE)
 
     if st.button("Agregar vencimiento"):
         c.execute("""
@@ -403,6 +405,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
