@@ -49,7 +49,7 @@ telegram_app = ApplicationBuilder().token(TOKEN).build()
 telegram_app.add_handler(CommandHandler("start", start))
 
 # Crear Flask
-app = Flask(_name_)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
@@ -70,3 +70,4 @@ if _name_ == "_main_":
     telegram_app.bot.set_webhook(url=f"{RENDER_URL}/{TOKEN}")
 
     app.run(host="0.0.0.0", port=PORT)
+
