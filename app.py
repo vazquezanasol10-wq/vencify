@@ -39,8 +39,13 @@ st.divider()
 # ----------------------------
 # CONEXIÓN SQLITE LOCAL
 # ----------------------------
+@st.cache_resource
+def get_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
+    return conn
 
-conn = psycopg2.connect(DATABASE_URL)
+conn = get_connection()
 c = conn.cursor()
 # ===============================
 # CONFIGURACIÓN LOCAL
@@ -405,6 +410,7 @@ Gracias por tu interés en Vencify ASV.
             st.rerun()
 
     verificar_alertas(st.session_state.usuario_id, st.session_state.chat_id)
+
 
 
 
