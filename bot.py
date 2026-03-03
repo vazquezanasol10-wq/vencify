@@ -41,7 +41,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         await update.message.reply_text("Ya estás registrado.")
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
 
@@ -54,5 +54,6 @@ if __name__ == "_main_":
         webhook_url=f"{RENDER_URL}/{TOKEN}",
         url_path=TOKEN,
     )
+
 
 
