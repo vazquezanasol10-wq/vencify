@@ -4,7 +4,13 @@ import hashlib
 import random
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from supabase import create_client
+import os
 
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 TOKEN = os.getenv("BOT_TOKEN")
 PORT = int(os.environ.get("PORT", 10000))
 
@@ -54,6 +60,7 @@ if __name__ == "__main__":
         webhook_url=f"{RENDER_URL}/{TOKEN}",
         url_path=TOKEN,
     )
+
 
 
 
