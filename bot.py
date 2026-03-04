@@ -3,32 +3,37 @@ import telebot
 from supabase import create_client
 from flask import Flask
 import threading
+import requests
 
 # -------------------------
-# Configuración de Supabase
+# Configuración de variables
 # -------------------------
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+PORT = int(os.environ.get("PORT", 10000))
+
+if not SUPABASE_URL or not SUPABASE_KEY or not TELEGRAM_TOKEN:
+    raise Exception("❌ Asegurate de haber seteado SUPABASE_URL, SUPABASE_KEY y TELEGRAM_TOKEN")
 
 # -------------------------
-# Configuración del bot
+# Inicializar Supabase y Telebot
 # -------------------------
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Borrar webhook activo (previene error 409)
+requests.get(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/deleteWebhook")
+
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 # -------------------------
-# Función para registrar usuarios
+# Función para registrar usuarios con upsert
 # -------------------------
-def registrar_usuario(chat_id, username, password):
+def registrar_usuario(chat_id):
+    username = f"user{chat_id}"
+    password = "temporal123"
     try:
-        # Chequear si ya existe
-        user = supabase.table("usuarios").select("*").eq("chat_id", chat_id).execute()
-        if user.data and len(user.data) > 0:
-            return "Ya estás registrado"
-        
-        # Insertar nuevo usuario
-        res = supabase.table("usuarios").insert({
+        res = supabase.table("usuarios").upsert({
             "username": username,
             "password": password,
             "chat_id": chat_id,
@@ -42,34 +47,35 @@ def registrar_usuario(chat_id, username, password):
         return f"Error inesperado: {str(e)}"
 
 # -------------------------
-# Comando /start de Telegram
+# Comandos del bot
 # -------------------------
 @bot.message_handler(commands=['start'])
 def start(message):
     chat_id = str(message.chat.id)
-    username = f"user{chat_id}"
-    password = "temporal123"
-
-    respuesta = registrar_usuario(chat_id, username, password)
+    respuesta = registrar_usuario(chat_id)
     bot.reply_to(message, respuesta)
+
+@bot.message_handler(commands=['ping'])
+def ping(message):
+    bot.reply_to(message, "pong ✅")
 
 # -------------------------
 # Flask dummy para Render
 # -------------------------
-app = Flask(__name__)
+app = Flask(_name_)
 
 @app.route("/")
 def home():
-    return "Bot Vencify corriendo"
+    return "Bot Vencify corriendo 🚀"
 
 # -------------------------
-# Arrancar bot en hilo aparte
+# Hilo para polling
 # -------------------------
 threading.Thread(target=lambda: bot.infinity_polling()).start()
 
-# Arrancar Flask en el puerto que Render requiere
-port = int(os.environ.get("PORT", 10000))
-app.run(host="0.0.0.0", port=port)
-
-
-
+# -------------------------
+# Arrancar Flask en puerto Render
+# -------------------------
+if _name_ == "_main_":
+    print("Bot iniciado y Flask corriendo...")
+    app.run(host="0.0.0.0", port=PORT)
