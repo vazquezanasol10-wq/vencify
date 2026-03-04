@@ -21,22 +21,25 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 # Función para registrar usuarios
 # -------------------------
 def registrar_usuario(chat_id, username, password):
-    # Chequear si ya existe
-    user = supabase.table("usuarios").select("*").eq("chat_id", chat_id).execute()
-    if user.data:
-        return "Ya estás registrado"
+    try:
+        # Chequear si ya existe
+        user = supabase.table("usuarios").select("*").eq("chat_id", chat_id).execute()
+        if user.data and len(user.data) > 0:
+            return "Ya estás registrado"
+        
+        # Insertar nuevo usuario
+        res = supabase.table("usuarios").insert({
+            "username": username,
+            "password": password,
+            "chat_id": chat_id,
+            "activo": True
+        }).execute()
 
-    # Insertar nuevo usuario
-    res = supabase.table("usuarios").insert({
-        "username": username,
-        "password": password,
-        "chat_id": chat_id,
-        "activo": True
-    }).execute()
-
-    if res.error:
-        return f"Error al registrar: {res.error.message}"
-    return "Registro exitoso"
+        if res.error:
+            return f"Error al registrar: {res.error.message}"
+        return "Registro exitoso"
+    except Exception as e:
+        return f"Error inesperado: {str(e)}"
 
 # -------------------------
 # Comando /start de Telegram
@@ -67,5 +70,6 @@ threading.Thread(target=lambda: bot.infinity_polling()).start()
 # Arrancar Flask en el puerto que Render requiere
 port = int(os.environ.get("PORT", 10000))
 app.run(host="0.0.0.0", port=port)
+
 
 
