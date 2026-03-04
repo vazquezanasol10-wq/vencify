@@ -1,6 +1,8 @@
 import os
 import telebot
 from supabase import create_client
+from flask import Flask
+import threading
 
 # -------------------------
 # Configuración de Supabase
@@ -19,11 +21,11 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 # Función para registrar usuarios
 # -------------------------
 def registrar_usuario(chat_id, username, password):
-    # Buscar si ya existe por chat_id
+    # Chequear si ya existe
     user = supabase.table("usuarios").select("*").eq("chat_id", chat_id).execute()
     if user.data:
         return "Ya estás registrado"
-    
+
     # Insertar nuevo usuario
     res = supabase.table("usuarios").insert({
         "username": username,
@@ -31,19 +33,17 @@ def registrar_usuario(chat_id, username, password):
         "chat_id": chat_id,
         "activo": True
     }).execute()
-    
+
     if res.error:
         return f"Error al registrar: {res.error.message}"
     return "Registro exitoso"
 
 # -------------------------
-# Manejador del comando /start
+# Comando /start de Telegram
 # -------------------------
 @bot.message_handler(commands=['start'])
 def start(message):
     chat_id = str(message.chat.id)
-
-    # Generar username y password para prueba
     username = f"user{chat_id}"
     password = "temporal123"
 
@@ -51,14 +51,20 @@ def start(message):
     bot.reply_to(message, respuesta)
 
 # -------------------------
-# Arrancar el bot
+# Flask dummy para Render
 # -------------------------
-if __name__ == "__main__":
-    print("Bot iniciado...")
-    bot.infinity_polling()
+app = Flask(_name_)
 
+@app.route("/")
+def home():
+    return "Bot Vencify corriendo"
 
+# -------------------------
+# Arrancar bot en hilo aparte
+# -------------------------
+threading.Thread(target=lambda: bot.infinity_polling()).start()
 
-
-
+# Arrancar Flask en el puerto que Render requiere
+port = int(os.environ.get("PORT", 10000))
+app.run(host="0.0.0.0", port=port)
 
