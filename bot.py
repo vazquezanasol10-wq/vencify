@@ -32,20 +32,22 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 def registrar_usuario(chat_id):
     username = f"user{chat_id}"
     password = "temporal123"
-    try:
-       res = supabase.table("usuarios").upsert({
-           "username": username,
-           "password": password,
-           "chat_id": chat_id,
-           "activo": True
-       }, on_conflict="chat_id").execute() # ⚡ Clave: on_conflict="chat_id"
 
-        if res.error:
-            return f"Error al registrar: {res.error.message}"
+    try:
+        res = supabase.table("usuarios").upsert(
+            {
+                "username": username,
+                "password": password,
+                "chat_id": chat_id,
+                "activo": True
+            },
+            on_conflict="chat_id"
+        ).execute()
+
         return "Registro exitoso"
+
     except Exception as e:
         return f"Error inesperado: {str(e)}"
-
 # -------------------------
 # Comandos del bot
 # -------------------------
@@ -79,5 +81,6 @@ threading.Thread(target=lambda: bot.infinity_polling()).start()
 if __name__ == "__main__":
     print("Bot iniciado y Flask corriendo...")
     app.run(host="0.0.0.0", port=PORT)
+
 
 
