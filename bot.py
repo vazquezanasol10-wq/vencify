@@ -27,7 +27,7 @@ requests.get(f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/deleteWebhook")
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 # -------------------------
-# Función para registrar usuarios con upsert
+# Función para registrar usuarios con upsert usando chat_id
 # -------------------------
 def registrar_usuario(chat_id):
     username = f"user{chat_id}"
@@ -38,7 +38,7 @@ def registrar_usuario(chat_id):
             "password": password,
             "chat_id": chat_id,
             "activo": True
-        }).execute()
+        }, on_conflict="chat_id").execute()  # ⚡ Clave: on_conflict="chat_id"
 
         if res.error:
             return f"Error al registrar: {res.error.message}"
