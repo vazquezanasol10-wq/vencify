@@ -62,7 +62,7 @@ def ping(message):
 # -------------------------
 # Flask dummy para Render
 # -------------------------
-app = Flask(_name_)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
@@ -76,6 +76,7 @@ threading.Thread(target=lambda: bot.infinity_polling()).start()
 # -------------------------
 # Arrancar Flask en puerto Render
 # -------------------------
-if _name_ == "_main_":
+if __name__ == "__main__":
     print("Bot iniciado y Flask corriendo...")
     app.run(host="0.0.0.0", port=PORT)
+
